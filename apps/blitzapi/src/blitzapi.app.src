@@ -1,0 +1,31 @@
+{application, blitzapi,
+ [{description, "An OTP application"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, { blitzapi_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    crypto,
+    inets,
+    mnesia,
+    lager,
+    cowboy,
+    jsx,
+    iso8601,
+    sync
+   ]},
+  {env,[
+    {http, [{port, 8443}, {listeners, 100}]},
+    {wallet_dir, {path, <<"/opt/data/wallet">>}},
+    {wallet_app, {path, <<"/opt/bin/blitz_simplewallet">>}}
+  ]},
+  {modules, []},
+  {start_phases, [
+    {start_listeners, []}
+  ]},
+
+  {maintainers, []},
+  {licenses, []},
+  {links, []}
+ ]}.

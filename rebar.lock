@@ -1,0 +1,32 @@
+{"1.1.0",
+[{<<"cowboy">>,
+  {git,"https://github.com/ninenines/cowboy.git",
+       {ref,"d08c2ab39d38c181abda279d5c2cadfac33a50c1"}},
+  0},
+ {<<"cowlib">>,
+  {git,"https://github.com/ninenines/cowlib.git",
+       {ref,"d544a494af4dbc810fc9c15eaf5cc050cced1501"}},
+  1},
+ {<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.8">>},1},
+ {<<"iso8601">>,
+  {git,"https://github.com/erlsci/iso8601.git",
+       {ref,"a5a9fdb14321b4e6c3587ef3fa5bd1123418bfcb"}},
+  0},
+ {<<"jsx">>,
+  {git,"https://github.com/mhishami/jsx.git",
+       {ref,"3074d4865b3385a050badf7828ad31490d860df5"}},
+  0},
+ {<<"lager">>,{pkg,<<"lager">>,<<"3.2.1">>},0},
+ {<<"ranch">>,
+  {git,"https://github.com/ninenines/ranch.git",
+       {ref,"adf1822defc2b7cfdc7aca112adabfa1d614043c"}},
+  1},
+ {<<"sync">>,
+  {git,"https://github.com/rustyio/sync.git",
+       {ref,"ce670127d03b952cc0e06aeaef5ee2deea983a29"}},
+  0}]}.
+[
+{pkg_hash,[
+ {<<"goldrush">>, <<"2024BA375CEEA47E27EA70E14D2C483B2D8610101B4E852EF7F89163CDB6E649">>},
+ {<<"lager">>, <<"EEF4E18B39E4195D37606D9088EA05BF1B745986CF8EC84F01D332456FE88D17">>}]}
+].
