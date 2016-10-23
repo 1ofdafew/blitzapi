@@ -36,10 +36,10 @@ start_phase(start_listeners, _StartType, []) ->
   Dispatch = cowboy_router:compile([
     {'_', [
       {<<"/api/v1/auth">>, blitzapi_auth_handler, []},
-      {<<"/api/v1/users">>, blitzapi_user_handler, []},
       {<<"/api/v1/users/:username">>, blitzapi_user_update_handler, []},
-      {<<"/api/v1/wallets">>, blitzapi_wallet_handler, []},
-      {<<"/api/v1/wallets/:wallet">>, blitzapi_wallet_update_handler, []}
+      {<<"/api/v1/users">>, blitzapi_user_handler, []},
+      {<<"/api/v1/wallets/:wallet">>, blitzapi_wallet_update_handler, []},
+      {<<"/api/v1/wallets">>, blitzapi_wallet_handler, []}
     ]}
   ]),
   RanchOptions = [{port, Port}],

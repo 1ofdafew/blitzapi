@@ -3,6 +3,7 @@
 
 -export ([init/3]).
 -export ([allowed_methods/2]).
+-export ([is_authorized/2]).
 -export ([content_types_accepted/2]).
 -export ([create_wallet/2]).
 -export ([ensure_exists/2]).
@@ -15,6 +16,9 @@ init(_Transport, _Req, []) ->
 
 allowed_methods(Req, State) ->
   {[<<"POST">>, <<"OPTIONS">>], Req, State}.
+
+is_authorized(Req, State) ->
+  blitzapi_user_update_handler:is_authorized(Req, State).
 
 % for POST
 content_types_accepted(Req, State) ->
@@ -31,6 +35,7 @@ create_wallet(Req, State) ->
 
     Wallet = maps:get(<<"wallet">>, Data),
     Password = maps:get(<<"password">>, Data),
+    ?INFO("Creating wallet ~p...", [Wallet]),
 
     % do some checking
     {ok, {path, Dir}} = application:get_env(blitzapi, wallet_dir),
@@ -39,6 +44,7 @@ create_wallet(Req, State) ->
       {error, enoent} ->
         % ok, we can create the wallet
         Pid = blitzapi_port:start(new, {Wallet, Password}),
+        timer:sleep(1000),
         {ok, Address} = blitzapi_port:cmd(Pid, <<"address">>),
         blitzapi_port:stop(Pid),
 

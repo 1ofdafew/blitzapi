@@ -46,6 +46,7 @@ loop(Port) ->
       port_command(Port, <<Cmd/binary, "\r\n">>),
       From ! read_address(Port);
     {From, command, Command} ->
+      ?INFO("Running cmd: ~p", [Command]),
       port_command(Port, <<Command/binary, "\r\n">>),
       From ! read_details(Port);
     {Port, {data, {eol, Data}}} ->
@@ -70,8 +71,13 @@ read_balance(Port) ->
   receive
     {Port, {data, {eol, Data}}} ->
       ?DEBUG("Wallet balance: ~p", [Data]),
-      [_,_,_,_, Bal, _,_, Locked] = binary:split(Data, <<" ">>, [global]),
-      {ok, {balance, Bal}, {locked, Locked}}
+      try
+        [_,_,_,_, Bal, _,_, Locked] = binary:split(Data, <<" ">>, [global]),
+        {ok, {balance, Bal}, {locked, Locked}}
+      catch
+        _:_ ->
+          {error, bad_wallet_creds}
+      end
   end.
 
 read_address(Port) ->

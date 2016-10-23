@@ -3,6 +3,7 @@
 
 -export ([init/3]).
 -export ([allowed_methods/2]).
+-export ([is_authorized/2]).
 -export ([resource_exists/2]).
 -export ([delete_resource/2]).
 -export ([delete_completed/2]).
@@ -13,6 +14,8 @@
 -export ([do_transfer/2]).
 -export ([ensure_exists/2]).
 
+-define (SLEEP, 200).
+
 %%% ===========================================================================
 %%% cowboy callbacks
 %%% ===========================================================================
@@ -22,11 +25,14 @@ init(_Transport, _Req, []) ->
 allowed_methods(Req, State) ->
   {[<<"GET">>, <<"PUT">>, <<"PATCH">>, <<"DELETE">>, <<"OPTIONS">>], Req, State}.
 
+is_authorized(Req, State) ->
+  blitzapi_user_update_handler:is_authorized(Req, State).
+
 resource_exists(Req, State) ->
   try
     {Wallet, Req1} = cowboy_req:binding(wallet, Req),
     {ok, {path, Dir}} = application:get_env(blitzapi, wallet_dir),
-    File = <<Dir/binary, "/", Wallet/binary>>,
+    File = <<Dir/binary, "/", Wallet/binary, ".wallet">>,
     case file:list_dir(binary_to_list(File)) of
       {error, enotdir} ->
         {true, Req1, State};
@@ -44,8 +50,8 @@ delete_resource(Req, State) ->
     {Wallet, Req1} = cowboy_req:binding(wallet, Req),
     {ok, {path, Dir}} = application:get_env(blitzapi, wallet_dir),
     D1 = <<Dir/binary, "/archive">>,
-    F1 = <<Dir/binary, "/", Wallet/binary>>,
-    F2 = <<Dir/binary, "/archive/", Wallet/binary>>,
+    F1 = <<Dir/binary, "/", Wallet/binary, "*">>,
+    F2 = <<Dir/binary, "/archive/.">>,
     case file:list_dir(binary_to_list(D1)) of
       {error, enoent} ->
         os:cmd("mkdir -p " ++ binary_to_list(D1)),
@@ -65,7 +71,7 @@ delete_completed(Req, State) ->
   try
     {Wallet, Req1} = cowboy_req:binding(wallet, Req),
     {ok, {path, Dir}} = application:get_env(blitzapi, wallet_dir),
-    F2 = <<Dir/binary, "/archive/", Wallet/binary>>,
+    F2 = <<Dir/binary, "/archive/", Wallet/binary, ".wallet">>,
     case file:list_dir(binary_to_list(F2)) of
       {error, enoent} ->
         {false, Req, State};
@@ -86,6 +92,7 @@ content_types_accepted(Req, State) ->
   {[{<<"application/json">>, do_transfer}], Req, State}.
 
 get_wallet(Req, State) ->
+  ?INFO("Getting wallet details..."),
   Now = erlang:timestamp(),
   try
     {Wallet, Req1} = cowboy_req:binding(wallet, Req),
@@ -95,6 +102,7 @@ get_wallet(Req, State) ->
     Password = maps:get(<<"password">>, Data),
 
     Pid = blitzapi_port:start(open, {Wallet, Password}),
+    timer:sleep(?SLEEP),
     {ok, Balance, Locked} = blitzapi_port:cmd(Pid, <<"balance">>),
     {ok, Address} = blitzapi_port:cmd(Pid, <<"address">>),
     blitzapi_port:stop(Pid),
@@ -108,12 +116,12 @@ get_wallet(Req, State) ->
       Error = [{error, <<"Missing json data">>},
                {server_time, iso8601:format(Now)}],
       Req3 = cowboy_req:set_resp_body(jsx:encode(Error), Req),
-      {false, Req3, State};
-    _:Else ->
-      ?ERROR("Error: ~p", [Else]),
-      Error = [{error, Else},
+      {jsx:encode(Error), Req3, State};
+    _:_ ->
+      Error = [{error, <<"Invalid wallet, or bad password">>},
                {server_time, iso8601:format(Now)}],
-      {jsx:encode(Error), Req, State}
+      Req3 = cowboy_req:set_resp_body(jsx:encode(Error), Req),
+      {jsx:encode(Error), Req3, State}
   end.
 
 do_transfer(Req, State) ->
@@ -136,12 +144,13 @@ do_transfer(Req, State) ->
     ?INFO("Processing coin transfer from wallet ~p to address ~p, amount=~p, fee=~p",
       [Wallet, Address, Amount, Fee]),
 
-    Cmd = <<"transfer ", Mixin/binary, " ", Address/binary, " ",
-            Amount/binary, " -f ", Fee/binary>>,
-
+    Cmd = io_lib:format("transfer ~p ~s ~p -f ~p", [Mixin, binary_to_list(Address), Amount, Fee]),
     Pid = blitzapi_port:start(open, {Wallet, Password}),
-    {ok, Result} = blitzapi_port:cmd(Pid, Cmd),
+    timer:sleep(?SLEEP),
+    {ok, Result} = blitzapi_port:cmd(Pid, iolist_to_binary(Cmd)),
     blitzapi_port:stop(Pid),
+
+    ?INFO("Result of coin transfer: ~p", [Result]),
 
     Reply = [{result, Result},
              {server_time, iso8601:format(Now)}],
