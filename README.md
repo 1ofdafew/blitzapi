@@ -18,7 +18,7 @@ The API shall follow JSON data for request and response, with HTTP verbs for spe
 |:----|--------|-------------------------|--------------------|------------------|--------------------|
 | 1   | POST   | /api/v1/users           | Create new user    | none             | username, password |
 | 2   | POST   | /api/v1/auth            | Get auth token     | none             | username, password |
-| 3   | GET    | /api/v1/users/:username | Get user record    | X-Blitzcoin-Key  |                    |
+| 3   | GET    | /api/v1/users/:username | Get user record    | X-Blitzcoin-Key  | password           |
 | 4   | PUT    | /api/v1/users/:username | Update user record | X-Blitzcoin-Key  | password, active   |
 | 5   | DELETE | /api/v1/users/:username | Delete user record | X-Blitzcoin-Key  | password           |
 | 6   | POST   | /api/v1/wallet/         | Create user wallet | X-Blitzcoin-Key  | wallet, password   |
@@ -141,9 +141,10 @@ curl -X POST -H 'Content-Type: application/json' \
 
 ## 3. Get user record
 ```
-curl -H 'Content-Type: application/json' \
+curl -X GET -H 'Content-Type: application/json' \
   -H 'X-Blitzcoin-Key: 2oYhFwnZttHGVHu4iFs5M4wTYQ4pCKX4LDCEqhi8hYMm' \
   http://localhost:8443/api/v1/users/bar \
+  -d '{"password": "secret"}' \
   -vvv
 ```
 

@@ -62,11 +62,7 @@ delete_resource(Req, State) ->
 
     case blitzapi_db:get({blitzapi_users, Username}) of
       {ok, [User]} ->
-        P1 = base58:encode(crypto:hash(sha256, Password)),
-        ?INFO("P1: ~p", [P1]),
-        ?INFO("P2: ~p", [User#blitzapi_users.password]),
-
-        case User#blitzapi_users.password =:= P1 of
+        case compare_passwd(User, Password) of
           true ->
             blitzapi_db:delete({blitzapi_users, Username}),
             {true, Req2, State};
@@ -96,11 +92,23 @@ get_user(Req, State) ->
   Now = erlang:timestamp(),
   try
     {Username, Req1} = cowboy_req:binding(username, Req),
+    {ok, Body, Req2} = cowboy_req:body(Req1),
+    Data = jsx:decode(Body, [return_maps]),
+    ensure_exists([<<"password">>], Data),
+    Password = maps:get(<<"password">>, Data),
+
     case blitzapi_db:get({blitzapi_users, Username}) of
       {ok, [User]} ->
-        Reply = [{user, to_user(User)},
-                 {server_time, iso8601:format(Now)}],
-        {jsx:encode(Reply), Req1, State};
+        case compare_passwd(User, Password) of
+          true ->
+            Reply = [{user, to_user(User)},
+                     {server_time, iso8601:format(Now)}],
+            {jsx:encode(Reply), Req1, State};
+          false ->
+            Reply = [{error, <<"No such user, or bad password">>},
+                     {server_time, iso8601:format(Now)}],
+            {jsx:encode(Reply), Req1, State}
+        end;
       {ok, []} ->
         Reply = [{error, <<"No such user">>},
                  {server_time, iso8601:format(Now)}],
@@ -181,3 +189,7 @@ to_user(User) ->
    {created, Created},
    {updated, Updated},
    {active, Active}].
+
+compare_passwd(User, Password) ->
+  P1 = base58:encode(crypto:hash(sha256, Password)),
+  User#blitzapi_users.password =:= P1.
