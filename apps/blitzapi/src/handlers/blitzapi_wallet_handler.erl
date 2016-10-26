@@ -75,6 +75,7 @@ create_wallet(Req, State) ->
     end,
 
     File = <<Dir/binary, "/", Wallet/binary>>,
+    ?INFO("Wallet details: ~p", [File]),
     case file:list_dir(binary_to_list(File)) of
       {error, enoent} ->
         % ok, we can create the wallet
@@ -88,7 +89,7 @@ create_wallet(Req, State) ->
         Reply = [Address, {server_time, iso8601:format(Now)}],
         Req2 = cowboy_req:set_resp_body(jsx:encode(Reply), Req1),
         {true, Req2, State};
-      {error, enotdir} ->
+      {error, _} ->
         ?ERROR("Wallet error: wallet already exists..."),
         Reply = [{error, <<"Wallet exists">>},
                  {server_time, iso8601:format(Now)}],
