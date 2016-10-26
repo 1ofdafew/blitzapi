@@ -66,6 +66,7 @@ resource_exists(Req, State) ->
     File = <<Dir/binary, "/", Wallet/binary, ".wallet">>,
     case file:list_dir(binary_to_list(File)) of
       {error, enotdir} ->
+        ?INFO("Wallet ~p exists...", [Wallet]),
         {true, Req1, State};
       _ ->
         {false, Req1, State}

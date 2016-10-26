@@ -69,9 +69,11 @@ register_user(Req, State) ->
       {ok, User} ->
         Reply = [{user, to_user(User)},
                  {server_time, iso8601:format(Now)}],
+        ?INFO("User ~p created successfully...", [Username]),
         Req2 = cowboy_req:set_resp_body(jsx:encode(Reply), Req1),
         {true, Req2, State};
       {error, _} ->
+        ?ERROR("Error in creating user. User already exists!"),
         Reply = [{error, <<"User exists">>},
                  {server_time, iso8601:format(Now)}],
         Req2 = cowboy_req:set_resp_body(jsx:encode(Reply), Req1),
@@ -79,12 +81,13 @@ register_user(Req, State) ->
     end
   catch
     _:badarg ->
+      ?ERROR("User error: Missing JSON data"),
       Error = [{error, <<"Missing json data">>},
                {server_time, iso8601:format(Now)}],
       Req3 = cowboy_req:set_resp_body(jsx:encode(Error), Req),
       {false, Req3, State};
     _:Else ->
-      ?ERROR("Error: ~p", [Else]),
+      ?ERROR("User error: ~p", [Else]),
       Error = [{error, Else},
                {server_time, iso8601:format(Now)}],
       Req3 = cowboy_req:set_resp_body(jsx:encode(Error), Req),

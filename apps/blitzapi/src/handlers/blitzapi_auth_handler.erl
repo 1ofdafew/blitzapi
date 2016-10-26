@@ -82,18 +82,20 @@ process_auth(Req, State) ->
         Req2 = cowboy_req:set_resp_body(jsx:encode(Reply), Req1),
         {true, Req2, State};
       _ ->
+        ?ERROR("Invalid username/password"),
         Reply = [{error, <<"Invalid username, or password">>}],
         Req2 = cowboy_req:set_resp_body(jsx:encode(Reply), Req1),
         {false, Req2, State}
     end
   catch
     _:badarg ->
+      ?ERROR("Authentication error: Missing JSON data..."),
       Error = [{error, <<"Missing json data">>},
                {server_time, iso8601:format(Now)}],
       Req3 = cowboy_req:set_resp_body(jsx:encode(Error), Req),
       {false, Req3, State};
     _:Else ->
-      ?ERROR("Error: ~p", [Else]),
+      ?ERROR("Authentication error: ~p", [Else]),
       Error = [{error, Else},
                {server_time, iso8601:format(Now)}],
       Req3 = cowboy_req:set_resp_body(jsx:encode(Error), Req),

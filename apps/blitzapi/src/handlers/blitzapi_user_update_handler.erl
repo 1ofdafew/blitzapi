@@ -60,6 +60,7 @@ is_authorized(Req, State) ->
   case blitzapi_db:get({blitzapi_tokens, Auth}) of
     {ok, [_Val]} ->
       % validate token
+      ?INFO("Token ~p is validated", [Auth]),
       {true, Req1, Auth};
     {ok, []} ->
       {{false, <<"Basic Realm=\"Blitzcoin API V1.0.0\"">>}, Req1, State}
@@ -96,6 +97,7 @@ delete_resource(Req, State) ->
         case compare_passwd(User, Password) of
           true ->
             blitzapi_db:delete({blitzapi_users, Username}),
+            ?INFO("User ~p is deleted.", [Username]),
             {true, Req2, State};
           false ->
             {false, Req2, State}
@@ -123,6 +125,8 @@ get_user(Req, State) ->
   Now = erlang:timestamp(),
   try
     {Username, Req1} = cowboy_req:binding(username, Req),
+    ?INFO("Getting user info for ~p", [Username]),
+
     {ok, Body, Req2} = cowboy_req:body(Req1),
     Data = jsx:decode(Body, [return_maps]),
     ensure_exists([<<"password">>], Data),
@@ -132,27 +136,31 @@ get_user(Req, State) ->
       {ok, [User]} ->
         case compare_passwd(User, Password) of
           true ->
+            ?INFO("User ~p is validated...", [Username]),
             Reply = [{user, to_user(User)},
                      {server_time, iso8601:format(Now)}],
             {jsx:encode(Reply), Req1, State};
           false ->
+            ?ERROR("Invalid user/password!"),
             Reply = [{error, <<"No such user, or bad password">>},
                      {server_time, iso8601:format(Now)}],
             {jsx:encode(Reply), Req1, State}
         end;
       {ok, []} ->
+        ?ERROR("No such user..."),
         Reply = [{error, <<"No such user">>},
                  {server_time, iso8601:format(Now)}],
         {jsx:encode(Reply), Req1, State}
     end
   catch
     _:badarg ->
+      ?ERROR("User error: missing JSON data"),
       Error = [{error, <<"Missing json data">>},
                {server_time, iso8601:format(Now)}],
       Req3 = cowboy_req:set_resp_body(jsx:encode(Error), Req),
       {false, Req3, State};
     _:Else ->
-      ?ERROR("Error: ~p", [Else]),
+      ?ERROR("User error: ~p", [Else]),
       Error = [{error, Else},
                {server_time, iso8601:format(Now)}],
       {jsx:encode(Error), Req, State}
@@ -182,18 +190,20 @@ update_user(Req, State) ->
                            active=Active},
 
     blitzapi_db:put(User),
+    ?INFO("User ~p details are updated...", [Username]),
     Reply = [{user, to_user(User)},
              {server_time, iso8601:format(Now)}],
     Req3 = cowboy_req:set_resp_body(jsx:encode(Reply), Req2),
     {true, Req3, State}
   catch
     _:badarg ->
+      ?ERROR("User error: missing JSON data"),
       Error = [{error, <<"Missing json data">>},
                {server_time, iso8601:format(Now)}],
       Req4 = cowboy_req:set_resp_body(jsx:encode(Error), Req),
       {false, Req4, State};
     _:Else ->
-      ?ERROR("Error: ~p", [Else]),
+      ?ERROR("User error: ~p", [Else]),
       Error = [{error, Else},
                {server_time, iso8601:format(Now)}],
       Req4 = cowboy_req:set_resp_body(jsx:encode(Error), Req),

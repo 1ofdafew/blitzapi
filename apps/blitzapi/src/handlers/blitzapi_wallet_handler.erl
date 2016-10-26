@@ -70,6 +70,10 @@ create_wallet(Req, State) ->
 
     % do some checking
     {ok, {path, Dir}} = application:get_env(blitzapi, wallet_dir),
+    case file:list_dir(Dir) of
+      {error, enoent} -> os:cmd("mkdir -p " ++ Dir)
+    end,
+
     File = <<Dir/binary, "/", Wallet/binary>>,
     case file:list_dir(binary_to_list(File)) of
       {error, enoent} ->
@@ -79,11 +83,13 @@ create_wallet(Req, State) ->
         {ok, Address} = blitzapi_port:cmd(Pid, <<"address">>),
         blitzapi_port:stop(Pid),
 
+        ?INFO("Wallet created.."),
         % return result
         Reply = [Address, {server_time, iso8601:format(Now)}],
         Req2 = cowboy_req:set_resp_body(jsx:encode(Reply), Req1),
         {true, Req2, State};
       {error, enotdir} ->
+        ?ERROR("Wallet error: wallet already exists..."),
         Reply = [{error, <<"Wallet exists">>},
                  {server_time, iso8601:format(Now)}],
         Req2 = cowboy_req:set_resp_body(jsx:encode(Reply), Req1),
@@ -91,12 +97,13 @@ create_wallet(Req, State) ->
     end
   catch
     _:badarg ->
+      ?ERROR("Wallet error: missing JSON data..."),
       Error = [{error, <<"Missing json data">>},
                {server_time, iso8601:format(Now)}],
       Req3 = cowboy_req:set_resp_body(jsx:encode(Error), Req),
       {false, Req3, State};
     _:Else ->
-      ?ERROR("Error: ~p", [Else]),
+      ?ERROR("Wallet error: ~p", [Else]),
       Error = [{error, Else},
                {server_time, iso8601:format(Now)}],
       Req3 = cowboy_req:set_resp_body(jsx:encode(Error), Req),
