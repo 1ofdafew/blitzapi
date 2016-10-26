@@ -36,6 +36,8 @@
 -module(blitzapi_app).
 -author ("DaFew <1ofdafew@gmail.com>").
 -behaviour(application).
+-vsn("1.0.1").
+
 -include ("blitzapi.hrl").
 
 %% Application callbacks

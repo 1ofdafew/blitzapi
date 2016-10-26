@@ -31,6 +31,9 @@
 %% common_test suite for blitzapi
 
 -module(blitzapi_SUITE).
+-author ("DaFew <1ofdafew@gmail.com>").
+-vsn("1.0.1").
+
 -include_lib("common_test/include/ct.hrl").
 
 -compile(export_all).

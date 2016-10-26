@@ -31,6 +31,7 @@
 -module (blitzapi_user_handler).
 -author ("DaFew <1ofdafew@gmail.com>").
 -include ("blitzapi.hrl").
+-vsn("1.0.1").
 
 -import (blitzapi_user_update_handler, [to_user/1]).
 

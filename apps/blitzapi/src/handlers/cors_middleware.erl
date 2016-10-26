@@ -31,6 +31,7 @@
 -module (cors_middleware).
 -author ("DaFew <1ofdafew@gmail.com>").
 -behaviour (cowboy_middleware).
+-vsn("1.0.1").
 
 -include ("blitzapi.hrl").
 
