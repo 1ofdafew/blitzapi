@@ -31,7 +31,7 @@
 -module (blitzapi_db).
 -author ("DaFew <1ofdafew@gmail.com>").
 -behaviour (gen_server).
--vsn("1.0.1").
+-vsn("1.0.2").
 
 -include ("blitzapi.hrl").
 

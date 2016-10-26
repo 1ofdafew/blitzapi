@@ -32,7 +32,7 @@
 
 -module(blitzapi_SUITE).
 -author ("DaFew <1ofdafew@gmail.com>").
--vsn("1.0.1").
+-vsn("1.0.2").
 
 -include_lib("common_test/include/ct.hrl").
 

@@ -36,7 +36,7 @@
 -module(blitzapi_sup).
 -author ("DaFew <1ofdafew@gmail.com>").
 -behaviour(supervisor).
--vsn("1.0.1").
+-vsn("1.0.2").
 
 %% API
 -export([start_link/0]).

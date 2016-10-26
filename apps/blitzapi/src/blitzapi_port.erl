@@ -30,7 +30,7 @@
 %
 -module(blitzapi_port).
 -author ("DaFew <1ofdafew@gmail.com>").
--vsn("1.0.1").
+-vsn("1.0.2").
 
 -include ("blitzapi.hrl").
 

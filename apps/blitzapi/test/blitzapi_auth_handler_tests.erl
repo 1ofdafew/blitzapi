@@ -30,7 +30,7 @@
 %
 -module (blitzapi_auth_handler_tests).
 -author ("DaFew <1ofdafew@gmail.com>").
--vsn("1.0.1").
+-vsn("1.0.2").
 
 -include_lib("eunit/include/eunit.hrl").
 -include ("blitzapi.hrl").
